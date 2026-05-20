@@ -1,38 +1,46 @@
 from pathlib import Path
+import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-*(*tg&ihe9rb6@#r(n@hxc*b3!5_(!dy0)2$_zo$@xj816_t8h'
 
-DEBUG = True
-
-# ====================== SECURITY SETTINGS ======================
+# ====================== DEBUG & HOST SETTINGS ======================
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://jamb-cbt-005e.onrender.com',
+    'http://jamb-cbt-005e.onrender.com',
     'http://127.0.0.1',
     'http://localhost',
-    'http://192.168.1.104',     # ← Put your current laptop IP here
+    'http://192.168.1.104',
 ]
 
-# These are critical for login to work from phone
+# ====================== DATABASE ======================
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# ====================== SECURITY & COOKIES ======================
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
-# Optional but helpful
-SESSION_COOKIE_DOMAIN = None
-
-# ================= AUTH SETTINGS =================
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
-
-# ================= APPLICATIONS =================
+# ====================== APPLICATIONS ======================
 INSTALLED_APPS = [
-    "jazzmin",  # ✅ MUST BE FIRST
+    "jazzmin",
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,9 +52,10 @@ INSTALLED_APPS = [
     'exams.apps.ExamsConfig',
 ]
 
-# ================= MIDDLEWARE =================
+# ====================== MIDDLEWARE ======================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # Added for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -57,7 +66,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'jamb_cbt.urls'
 
-# ================= TEMPLATES =================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -75,15 +83,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jamb_cbt.wsgi.application'
 
-# ================= DATABASE =================
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# ====================== AUTH & OTHER SETTINGS ======================
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
 
-# ================= PASSWORD VALIDATION =================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -91,16 +95,17 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ================= INTERNATIONALIZATION =================
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ================= STATIC =================
+# ====================== STATIC FILES ======================
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ================= EMAIL CONFIG =================
+# ====================== EMAIL & PAYSTACK ======================
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -108,40 +113,22 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "phixzas60@gmail.com"
 EMAIL_HOST_PASSWORD = "pjbb gfmq jkei uwat"
 
-# ================= PAYSTACK =================
 PAYSTACK_SECRET_KEY = "sk_test_86500f868558db97037ae0d4dfaa3036a01dcf71"
 PAYSTACK_PUBLIC_KEY = "pk_test_2dd7563c27640843bf759bb0e82497b19ee7e2ed"
 
-# ================= JAZZMIN DESIGN =================
+# ====================== JAZZMIN ======================
 JAZZMIN_SETTINGS = {
     "site_title": "JAMB CBT Admin",
     "site_header": "JAMB CBT Dashboard",
     "site_brand": "CBT System",
-
     "welcome_sign": "Welcome to CBT Admin",
-
-    "topmenu_links": [
-        {"name": "Home", "url": "admin:index"},
-    ],
-
+    "topmenu_links": [{"name": "Home", "url": "admin:index"}],
     "icons": {
         "auth.User": "fas fa-user",
         "exams.Profile": "fas fa-id-card",
         "exams.Subject": "fas fa-book",
         "exams.Question": "fas fa-question",
     },
-
     "show_sidebar": True,
     "navigation_expanded": True,
 }
-# Allow access from phone
-ALLOWED_HOSTS = ['*']
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1',
-    'http://localhost',
-    'http://192.168.1.104',   # Change this to your actual IP if different
-]
-
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
