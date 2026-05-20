@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: jamb-cbt
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn jamb_cbt.wsgi:application
+    plan: free
