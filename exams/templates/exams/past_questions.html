@@ -1,0 +1,36 @@
+{% extends "exams/base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ subject.name }} Past Questions</title>
+</head>
+
+<body>
+
+<h1>{{ subject.name }} Past Questions</h1>
+
+{% for question in questions %}
+
+<div style="margin-bottom:20px; border-bottom:1px solid #ccc; padding:10px">
+
+<p><strong>{{ forloop.counter }}. {{ question.question_text }}</strong></p>
+
+<p>A. {{ question.option_a }}</p>
+<p>B. {{ question.option_b }}</p>
+<p>C. {{ question.option_c }}</p>
+<p>D. {{ question.option_d }}</p>
+
+</div>
+
+{% endfor %}
+
+<br>
+
+<a href="/exams/subjects/">
+<button>Back to Subjects</button>
+</a>
+
+</body>
+</html>
+{% endblock %}

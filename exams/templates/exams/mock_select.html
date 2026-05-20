@@ -1,0 +1,27 @@
+<h1>Select 3 Subjects for JAMB Mock Test</h1>
+
+<form method="post">
+{% csrf_token %}
+
+{% if error %}
+<p style="color:red">{{ error }}</p>
+{% endif %}
+
+<p><b>English will be added automatically</b></p>
+
+{% for subject in subjects %}
+
+<label>
+<input type="checkbox" name="subjects" value="{{ subject.id }}">
+{{ subject.name }}
+</label>
+
+<br>
+
+{% endfor %}
+
+<br>
+
+<button type="submit">Start Mock Test</button>
+
+</form>

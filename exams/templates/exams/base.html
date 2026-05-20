@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JAMB CBT Practice</title>
+    
+    <!-- Better Favicon Fix -->
+    <link rel="icon" href="data:,">
+    <link rel="shortcut icon" href="data:,">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: #006400;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            min-height: 58px;
+        }
+
+        .nav-left {
+            display: flex;
+            gap: 20px;
+            font-size: 1rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 3px;
+        }
+
+        .nav-left a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 6px 10px;
+            white-space: nowrap;
+        }
+
+        .nav-left a:hover {
+            color: #a8e6a8;
+        }
+
+        .nav-left a.active {
+            color: #90EE90;
+            border-bottom: 3px solid #90EE90;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-right a {
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .nav-right .login { background: white; color: #006400; }
+        .nav-right .register { background: #00a000; color: white; }
+
+        .welcome-text {
+            color: white;
+            font-weight: 500;
+            margin-right: 12px;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            padding: 70px 20px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 10px 15px; min-height: 56px; }
+            .nav-left { gap: 12px; font-size: 0.93rem; }
+            .container { padding: 25px 15px 40px; }
+            .buttons { flex-direction: column; gap: 15px; }
+            .btn { min-width: 100%; padding: 16px; font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+            <a href="{% url 'subjects' %}" class="{% if 'subjects' in request.path or 'past' in request.path %}active{% endif %}">
+                Browse Subjects & Past Questions
+            </a>
+            <a href="{% url 'mock_test' %}" class="{% if 'mock-test' in request.path %}active{% endif %}">Mock Tests</a>
+            <a href="{% url 'counseling' %}">Counseling</a>
+        </div>
+
+        <div class="nav-right">
+            {% if user.is_authenticated %}
+                <span class="welcome-text">Welcome, {{ user.username }}</span>
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="login">Login</a>
+                <a href="{% url 'register' %}" class="register">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background:#e6ffed; border-left:6px solid #28a745; padding:12px; margin-bottom:20px; border-radius:6px; color:#155724; font-weight:500;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>

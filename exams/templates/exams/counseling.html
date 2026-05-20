@@ -1,0 +1,63 @@
+{% extends "exams/base.html" %}
+
+{% block content %}
+
+<div class="container" style="max-width: 700px; margin: 40px auto; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); overflow:hidden;">
+
+    <div style="background:#006400; color:white; padding:20px; text-align:center;">
+        <h2>🧑‍💼 JAMB Course & Institution Counseling</h2>
+        <p>Chat with our expert counselor on Telegram • No personal number needed</p>
+    </div>
+
+    <!-- Chat UI -->
+    <div style="height:420px; padding:20px; overflow-y:auto; background:#f4f4f4;">
+
+        <div style="background:white; padding:12px; border-radius:12px; margin-bottom:15px; max-width:80%; float:left;">
+            Hi! 👋 What course and university are you thinking of?
+        </div>
+        <div style="clear:both;"></div>
+
+        <div style="background:#006400; color:white; padding:12px; border-radius:12px; margin-bottom:15px; max-width:80%; float:right;">
+            I want to study Computer Science in UNILAG or OAU
+        </div>
+        <div style="clear:both;"></div>
+
+        <div style="background:white; padding:12px; border-radius:12px; margin-bottom:15px; max-width:80%; float:left;">
+            Great choice! Based on your JAMB score range, here are the best options...
+        </div>
+
+    </div>
+
+    <!-- Input -->
+    <div style="padding:15px; background:#f8f9fa; border-top:1px solid #ddd; display:flex;">
+        <input type="text" id="chat-input" placeholder="Type your message here..." style="flex:1; padding:14px; border:1px solid #ccc; border-radius:30px;">
+        <button onclick="sendMessage()" style="margin-left:10px; background:#006400; color:white; border:none; padding:0 25px; border-radius:30px;">
+            Send
+        </button>
+    </div>
+
+    <p style="text-align:center; padding:15px; color:#555; font-size:0.9rem;">
+        Your message will be sent via Telegram.
+    </p>
+
+</div>
+
+<script>
+function sendMessage() {
+    let message = document.getElementById("chat-input").value;
+
+    if(message.trim() === ""){
+        alert("Please type a message");
+        return;
+    }
+
+    // 👉 Replace with your real Telegram username
+    let telegramLink = "https://t.me/phixzas?text=" + encodeURIComponent(message);
+
+    window.open(telegramLink, "_blank");
+
+    document.getElementById("chat-input").value = "";
+}
+</script>
+
+{% endblock %}

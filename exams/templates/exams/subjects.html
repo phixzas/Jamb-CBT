@@ -1,0 +1,16 @@
+{% extends "exams/base.html" %}
+{% block content %}
+<h1>Select a Subject</h1>
+
+{% for subject in subjects %}
+
+<div style="margin:15px">
+
+<a href="/exams/past/{{ subject.id }}/">
+<button>{{ subject.name }}</button>
+</a>
+
+</div>
+
+{% endfor %}
+{% endblock %}

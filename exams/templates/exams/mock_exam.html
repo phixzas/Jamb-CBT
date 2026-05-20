@@ -1,0 +1,134 @@
+{% extends "exams/base.html" %}
+
+{% block content %}
+
+<h2 style="color:#006400; margin-bottom:30px;">JAMB Mock CBT Test</h2>
+
+<!-- RIGHT FLOATING NAVIGATOR -->
+<div style="position:fixed; top:100px; right:20px; width:200px; background:white; padding:12px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:1000;">
+
+    <!-- TIMER -->
+    <div style="background:#008000; color:white; padding:10px; border-radius:20px; text-align:center; font-size:17px; font-weight:bold; margin-bottom:15px;">
+        Time Remaining<br>
+        <span id="timer">120:00</span>
+    </div>
+
+    <h4 style="margin:10px 0 8px 0;">Question Navigator</h4>
+    
+    <div style="display:flex; flex-wrap:wrap; gap:5px; max-height:380px; overflow-y:auto; padding:5px;">
+        {% for subject, questions in subject_questions.items %}
+            <div style="width:100%; margin:8px 0 4px 0; font-weight:bold; color:#006400; font-size:14px;">
+                {{ subject.name }}
+            </div>
+            
+            {% for question in questions %}
+                <button type="button"
+                    onclick="document.getElementById('q{{question.id}}').scrollIntoView({behavior: 'smooth'})"
+                    id="nav{{question.id}}"
+                    style="width:28px; height:28px; border-radius:50%; border:none; background:#ccc; color:#333; font-size:13px; font-weight:bold;">
+                    {{ forloop.counter }}
+                </button>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+<form method="post" action="{% url 'submit_mock' %}" id="examForm">
+    {% csrf_token %}
+
+    <div style="max-width: 720px; margin-left: 0; margin-right: auto;">   <!-- Left-aligned + narrower -->
+
+        {% for subject, questions in subject_questions.items %}
+
+            <h2 style="background:#006400; color:white; padding:14px; border-radius:6px; margin:35px 0 20px 0; text-align:left;">
+                {{ subject.name }}
+            </h2>
+
+            {% for question in questions %}
+
+                <div id="q{{question.id}}" style="margin-bottom:30px; background:white; padding:22px; border-radius:10px; box-shadow:0 3px 12px rgba(0,0,0,0.1);">
+
+                    <p style="font-weight:bold; margin-bottom:18px; font-size:17px; line-height:1.55;">
+                        <strong>Question {{ forloop.counter }}.</strong> {{ question.question_text }}
+                    </p>
+
+                    <div style="margin-left:8px; line-height:2.1;">
+                        <label style="display:block; margin:13px 0;">
+                            <input type="radio" name="{{ question.id }}" value="A"> 
+                            A. {{ question.option_a }}
+                        </label>
+                        <label style="display:block; margin:13px 0;">
+                            <input type="radio" name="{{ question.id }}" value="B"> 
+                            B. {{ question.option_b }}
+                        </label>
+                        <label style="display:block; margin:13px 0;">
+                            <input type="radio" name="{{ question.id }}" value="C"> 
+                            C. {{ question.option_c }}
+                        </label>
+                        <label style="display:block; margin:13px 0;">
+                            <input type="radio" name="{{ question.id }}" value="D"> 
+                            D. {{ question.option_d }}
+                        </label>
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        {% endfor %}
+
+    </div>
+
+    <div style="text-align:center; margin:50px 0 40px 0;">
+        <button type="submit" style="padding:16px 60px; background:#006400; color:white; border:none; border-radius:8px; font-size:18px; cursor:pointer;">
+            Submit Exam
+        </button>
+    </div>
+</form>
+
+<script>
+// TIMER
+let timeLeft = 120 * 60;
+
+function startTimer() {
+    let timerElement = document.getElementById("timer");
+    let timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        timeLeft--;
+        if (timeLeft < 0) {
+            clearInterval(timerInterval);
+            document.getElementById("examForm").submit();
+        }
+    }, 1000);
+}
+window.onload = startTimer;
+
+// NAV BUTTON COLOR
+document.querySelectorAll("input[type='radio']").forEach(radio => {
+    radio.addEventListener("change", function() {
+        let navBtn = document.getElementById("nav" + this.name);
+        if (navBtn) {
+            navBtn.style.background = "#008000";
+            navBtn.style.color = "white";
+        }
+    });
+});
+
+// AUTO SAVE
+function autoSave() {
+    let answers = {};
+    document.querySelectorAll("input[type='radio']:checked").forEach(el => {
+        answers[el.name] = el.value;
+    });
+
+    fetch("/exams/autosave/", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify(answers)
+    });
+}
+setInterval(autoSave, 5000);
+</script>
+
+{% endblock %}

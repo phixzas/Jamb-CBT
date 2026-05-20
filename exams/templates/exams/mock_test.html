@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Start JAMB Mock Test</title>
+
+<script>
+function validateSubjects() {
+
+    let selected = document.querySelectorAll('input[name="subjects"]:checked');
+
+    if (selected.length !== 3) {
+        alert("Please select exactly 3 subjects. English is already included.");
+        return false;
+    }
+
+    return true;
+}
+</script>
+
+</head>
+
+<body>
+
+<h1>Select Your Subjects</h1>
+
+<p>English Language is compulsory.</p>
+<p>Please select <strong>3 other subjects</strong>.</p>
+
+<form action="/exams/start-mock/" method="post" onsubmit="return validateSubjects()">
+
+{% csrf_token %}
+
+<!-- English compulsory -->
+<label>
+<input type="checkbox" checked disabled>
+English Language (Compulsory)
+</label>
+
+<br><br>
+
+{% for subject in subjects %}
+
+{% if subject.name != "English" %}
+
+<label>
+<input type="checkbox" name="subjects" value="{{ subject.id }}">
+{{ subject.name }}
+</label>
+
+<br>
+
+{% endif %}
+
+{% endfor %}
+
+<br><br>
+
+<button type="submit">Start Mock Exam</button>
+
+</form>
+
+</body>
+</html>

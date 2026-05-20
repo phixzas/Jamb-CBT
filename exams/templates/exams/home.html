@@ -1,0 +1,22 @@
+{% extends "exams/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title" style="color:#006400; font-size:40px; font-weight:bold; margin-bottom:15px;">
+        Welcome to JAMB CBT Practice
+    </h1>
+    <p class="subtitle" style="color:#444; font-size:18px; margin-bottom:50px;">
+        Prepare for UTME with real past questions and full mock tests
+    </p>
+
+    <div class="buttons" style="display:flex; justify-content:center; gap:25px; flex-wrap:wrap;">
+        <a href="{% url 'subjects' %}" class="btn" style="background:#006400; color:white; padding:16px 32px; font-size:18px; border-radius:8px; text-decoration:none;">
+            Browse Subjects & Past Questions
+        </a>
+        <a href="{% url 'mock_test' %}" class="btn" style="background:#006400; color:white; padding:16px 32px; font-size:18px; border-radius:8px; text-decoration:none;">
+            Start Full JAMB Mock Test (180 Questions)
+        </a>
+    
+    </div>
+</div>
+{% endblock %}
