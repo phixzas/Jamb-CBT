@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-*(*tg&ihe9rb6@#r(n@hxc*b3!5_(!dy0)2$_zo$@xj816_t8h'
 
 # ====================== DEBUG & HOST SETTINGS ======================
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = True   # Keep True during development
 
 ALLOWED_HOSTS = ['*']
 
@@ -16,7 +16,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://jamb-cbt-005e.onrender.com',
     'http://127.0.0.1',
     'http://localhost',
-    'http://192.168.1.104',
+    'http://192.168.1.104',     # Change if your IP is different
 ]
 
 # ====================== DATABASE ======================
@@ -32,9 +32,9 @@ else:
         }
     }
 
-# ====================== SECURITY & COOKIES ======================
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+# ====================== SECURITY & COOKIES (Critical for phone login) ======================
+CSRF_COOKIE_SAMESITE = None          # Important for phone access
+SESSION_COOKIE_SAMESITE = None       # Important for phone access
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
@@ -52,7 +52,17 @@ INSTALLED_APPS = [
     'exams.apps.ExamsConfig',
 ]
 
-
+# ====================== MIDDLEWARE ======================
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
 
 ROOT_URLCONF = 'jamb_cbt.urls'
 
@@ -73,7 +83,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jamb_cbt.wsgi.application'
 
-# ====================== AUTH & OTHER SETTINGS ======================
+# ====================== AUTH SETTINGS ======================
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
@@ -95,17 +105,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ====================== MIDDLEWARE ======================
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',   # ← Must be second line
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
 # ====================== EMAIL & PAYSTACK ======================
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
