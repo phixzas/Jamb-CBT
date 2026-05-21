@@ -2,35 +2,115 @@
 
 {% block content %}
 
-<div style="text-align:center; padding:60px;">
+<div class="hero-section">
 
-    <h1 style="color:#006400;">Welcome to JAMB CBT Practice</h1>
-    <p style="font-size:18px; margin-bottom:30px;">
+    <h1 class="hero-title">
+        Welcome to JAMB CBT Practice
+    </h1>
+
+    <p class="hero-text">
         Prepare for UTME with real past questions and full mock tests
     </p>
 
-    <!-- Buttons -->
-    <a href="{% url 'subjects' %}" class="btn">Browse Subjects & Past Questions</a>
-    <a href="{% url 'mock_test' %}" class="btn">Start Full JAMB Mock Test</a>
-    <a href="{% url 'counseling' %}">Counseling</a>
-    
-  
+    <!-- BUTTONS -->
+
+    <div class="hero-buttons">
+
+        <a href="{% url 'subjects' %}" class="custom-btn">
+            Browse Subjects & Past Questions
+        </a>
+
+        <a href="{% url 'mock_test' %}" class="custom-btn">
+            Start Full JAMB Mock Test
+        </a>
+
+    </div>
+
+    <!-- COUNSELING -->
+
+    <div style="margin-top:20px;">
+
+        <a href="{% url 'counseling' %}" class="text-success fw-bold text-decoration-none">
+            Counseling
+        </a>
+
+    </div>
+
 </div>
 
 <style>
-.btn {
-    display: inline-block;
-    margin: 15px;
-    padding: 15px 30px;
-    font-size: 18px;
-    background: #006400;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
+
+.hero-section{
+    min-height:70vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:20px;
 }
-.btn:hover {
-    background: #004d00;
+
+.hero-title{
+    color:#006400;
+    font-size:48px;
+    font-weight:bold;
+    margin-bottom:20px;
 }
+
+.hero-text{
+    font-size:22px;
+    color:#555;
+    margin-bottom:40px;
+    max-width:700px;
+}
+
+.hero-buttons{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.custom-btn{
+    display:inline-block;
+    padding:15px 28px;
+    font-size:18px;
+    background:#006400;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    transition:0.3s;
+}
+
+.custom-btn:hover{
+    background:#004d00;
+    color:white;
+}
+
+/* MOBILE RESPONSIVENESS */
+
+@media (max-width:768px){
+
+    .hero-title{
+        font-size:32px;
+    }
+
+    .hero-text{
+        font-size:18px;
+    }
+
+    .hero-buttons{
+        flex-direction:row;
+        gap:10px;
+    }
+
+    .custom-btn{
+        font-size:15px;
+        padding:12px 16px;
+    }
+
+}
+
 </style>
 
 {% endblock %}
