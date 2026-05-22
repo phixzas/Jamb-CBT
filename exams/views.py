@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from django.urls import reverse
 from datetime import timedelta
 
 from .models import Subject, Question, Profile
@@ -19,6 +18,7 @@ import traceback
 # ================= CUSTOM DECORATOR =================
 
 def subscription_required(view_func):
+
     def wrapper(request, *args, **kwargs):
 
         if not request.user.is_authenticated:
@@ -32,9 +32,12 @@ def subscription_required(view_func):
             return redirect("payment_page")
 
         if profile.subscription_expiry and profile.subscription_expiry < timezone.now():
+
             profile.is_subscribed = False
             profile.save()
+
             messages.error(request, "Your subscription has expired")
+
             return redirect("payment_page")
 
         return view_func(request, *args, **kwargs)
@@ -80,30 +83,37 @@ def register_user(request):
             profile.referrer = referrer
             profile.save()
 
-            # OTP
+            # ================= OTP =================
             code = str(random.randint(100000, 999999))
 
             request.session["verify_user"] = user.id
             request.session["verify_email"] = email
             request.session["verify_code"] = code
 
+            # ================= SAFE EMAIL =================
             try:
                 send_mail(
                     "Your Verification Code",
                     f"Your code is: {code}",
-                    settings.DEFAULT_FROM_EMAIL,
+                    None,  # uses DEFAULT_FROM_EMAIL
                     [email],
                     fail_silently=True
                 )
             except Exception as e:
                 print("EMAIL ERROR:", e)
 
-            messages.success(request, "Account created! Check your email for code.")
+            messages.success(
+                request,
+                "Account created successfully! Check your email for verification code."
+            )
+
             return redirect("verify")
 
         except Exception as e:
+            print("========== REGISTRATION ERROR ==========")
             print(str(e))
             traceback.print_exc()
+
             messages.error(request, f"Registration failed: {str(e)}")
             return redirect("register")
 
@@ -116,16 +126,19 @@ def login_user(request):
 
     if request.method == "POST":
 
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
         user = authenticate(
             request,
-            username=request.POST.get("username"),
-            password=request.POST.get("password")
+            username=username,
+            password=password
         )
 
         if user:
 
             if not user.is_active:
-                messages.error(request, "Verify your email first")
+                messages.error(request, "Please verify your email first")
                 return redirect("login")
 
             login(request, user)
@@ -136,6 +149,7 @@ def login_user(request):
                 profile.is_subscribed = False
                 profile.save()
 
+            messages.success(request, f"Welcome {user.username}")
             return redirect("home")
 
         messages.error(request, "Invalid login details")
@@ -159,10 +173,13 @@ def verify_email(request):
     saved_code = request.session.get("verify_code")
 
     if not user_id or not saved_code:
-        messages.error(request, "Session expired")
+        messages.error(request, "Session expired. Please register again.")
         return redirect("register")
 
     user = User.objects.filter(id=user_id).first()
+
+    if not user:
+        return redirect("register")
 
     if request.method == "POST":
 
@@ -177,9 +194,10 @@ def verify_email(request):
             request.session.pop("verify_email", None)
             request.session.pop("verify_code", None)
 
+            messages.success(request, "Email verified successfully! You can now login.")
             return redirect("login")
 
-        messages.error(request, "Invalid code")
+        messages.error(request, "Invalid verification code")
 
     return render(request, "auth/verify.html")
 
@@ -191,6 +209,7 @@ def resend_code(request):
     user_id = request.session.get("verify_user")
 
     if not user_id:
+        messages.error(request, "Session expired")
         return redirect("register")
 
     user = User.objects.get(id=user_id)
@@ -198,14 +217,18 @@ def resend_code(request):
     code = str(random.randint(100000, 999999))
     request.session["verify_code"] = code
 
-    send_mail(
-        "New Verification Code",
-        f"Your new code is: {code}",
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=True
-    )
+    try:
+        send_mail(
+            "New Verification Code",
+            f"Your new code is: {code}",
+            None,
+            [user.email],
+            fail_silently=True
+        )
+    except Exception as e:
+        print("EMAIL ERROR:", e)
 
+    messages.success(request, "New verification code sent successfully")
     return redirect("verify")
 
 
@@ -222,18 +245,156 @@ def subjects(request):
     return render(request, "exams/subjects.html", {"subjects": subjects})
 
 
+# ================= PAST QUESTIONS =================
+
+def past_questions(request, subject_id):
+
+    subject = get_object_or_404(Subject, id=subject_id)
+    all_questions = Question.objects.filter(subject=subject).order_by("id")
+
+    page_number = request.GET.get("page", 1)
+
+    try:
+        page_number = int(page_number)
+    except:
+        page_number = 1
+
+    per_page = 15
+
+    start = (page_number - 1) * per_page
+    end = start + per_page
+
+    questions = all_questions[start:end]
+    total_questions = all_questions.count()
+    total_pages = (total_questions + per_page - 1) // per_page
+
+    return render(request, "exams/past_questions.html", {
+        "subject": subject,
+        "questions": questions,
+        "current_page": page_number,
+        "total_pages": total_pages,
+        "has_next": page_number < total_pages,
+        "has_previous": page_number > 1,
+        "total_questions": total_questions,
+    })
+
+
+# ================= MOCK TEST =================
+
+@subscription_required
+def mock_test(request):
+    subjects = Subject.objects.exclude(name__icontains="english")
+    return render(request, "exams/mock_test.html", {"subjects": subjects})
+
+
+# ================= COUNSELING =================
+
+@subscription_required
+def counseling(request):
+    return render(request, "exams/counseling.html")
+
+
+# ================= START MOCK =================
+
+@subscription_required
+def start_mock(request):
+
+    if request.method == "POST":
+
+        selected_subject_ids = request.POST.getlist("subjects")
+        subject_questions = {}
+        exam_question_ids = []
+
+        english = Subject.objects.filter(name__iexact="use of english").first()
+
+        if english:
+            english_questions = Question.objects.filter(subject=english).order_by("?")[:60]
+            subject_questions[english] = english_questions
+            exam_question_ids += [q.id for q in english_questions]
+
+        for sid in selected_subject_ids:
+
+            try:
+                subject = Subject.objects.get(id=sid)
+
+                if english and subject.id == english.id:
+                    continue
+
+                questions = Question.objects.filter(subject=subject).order_by("?")[:40]
+                subject_questions[subject] = questions
+                exam_question_ids += [q.id for q in questions]
+
+            except Subject.DoesNotExist:
+                continue
+
+        request.session["exam_questions"] = exam_question_ids
+
+        return render(request, "exams/mock_exam.html", {
+            "subject_questions": subject_questions
+        })
+
+    return redirect("mock_test")
+
+
+# ================= SUBMIT MOCK =================
+
+@subscription_required
+def submit_mock(request):
+
+    if request.method == "POST":
+
+        exam_question_ids = request.session.get("exam_questions", [])
+
+        subject_scores = {}
+        subject_totals = {}
+
+        for qid in exam_question_ids:
+
+            try:
+                q = Question.objects.get(id=qid)
+                subject_name = q.subject.name.strip()
+
+                subject_scores.setdefault(subject_name, 0)
+                subject_totals.setdefault(subject_name, 0)
+
+                subject_totals[subject_name] += 1
+
+                user_answer = request.POST.get(str(q.id))
+
+                if user_answer == q.correct_option:
+                    subject_scores[subject_name] += 1
+
+            except Question.DoesNotExist:
+                continue
+
+        results = {}
+        total_score = 0
+
+        for subject in subject_scores:
+
+            total = subject_totals.get(subject, 0)
+            correct = subject_scores.get(subject, 0)
+
+            score = round((correct / total) * 100) if total else 0
+            results[subject] = score
+            total_score += score
+
+        request.session.pop("exam_questions", None)
+
+        return render(request, "exams/result.html", {
+            "results": results,
+            "total_score": total_score
+        })
+
+    return redirect("home")
+
+
 # ================= PAYMENT =================
 
 @login_required
 def payment_page(request):
 
-    # ✅ FIXED SESSION PLAN HANDLING
     plan = request.GET.get("plan")
-
-    if plan:
-        request.session["plan"] = plan
-    else:
-        plan = request.session.get("plan")
 
     if not plan:
         return render(request, "exams/payment.html")
@@ -254,7 +415,7 @@ def payment_page(request):
     data = {
         "email": request.user.email,
         "amount": amount,
-        "callback_url": request.build_absolute_uri(reverse("paystack_verify")),
+        "callback_url": request.build_absolute_uri("/exams/paystack/verify/"),
         "metadata": {"plan": plan}
     }
 
@@ -288,8 +449,6 @@ def paystack_verify(request):
     response = requests.get(url, headers=headers)
     res = response.json()
 
-    print(res)  # DEBUG
-
     if res.get("status") and res["data"]["status"] == "success":
 
         profile = request.user.profile
@@ -305,7 +464,7 @@ def paystack_verify(request):
 
         profile.save()
 
-        messages.success(request, "Payment successful!")
+        messages.success(request, "Payment successful! Subscription activated")
         return redirect("home")
 
     messages.error(request, "Payment verification failed")
