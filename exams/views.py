@@ -5,11 +5,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+
+from .models import Subject, Question, Profile
+
 import random
 import requests
-from .models import Subject, Question, Profile
-from datetime import timedelta
-from django.utils import timezone
+import traceback
 
 
 # ================= CUSTOM DECORATOR =================
@@ -29,10 +32,12 @@ def subscription_required(view_func):
             return redirect("payment_page")
 
         if profile.subscription_expiry and profile.subscription_expiry < timezone.now():
+
             profile.is_subscribed = False
             profile.save()
 
             messages.error(request, "Your subscription has expired")
+
             return redirect("payment_page")
 
         return view_func(request, *args, **kwargs)
@@ -40,7 +45,7 @@ def subscription_required(view_func):
     return wrapper
 
 
-# ================= AUTH =================
+# ================= REGISTER =================
 
 def register_user(request):
 
@@ -55,13 +60,17 @@ def register_user(request):
         # CHECK USERNAME
 
         if User.objects.filter(username=username).exists():
+
             messages.error(request, "Username already taken")
+
             return redirect("register")
 
         # CHECK EMAIL
 
         if User.objects.filter(email=email).exists():
+
             messages.error(request, "Email already registered")
+
             return redirect("register")
 
         try:
@@ -89,7 +98,7 @@ def register_user(request):
 
             profile.save()
 
-            # GENERATE VERIFICATION CODE
+            # GENERATE CODE
 
             code = str(random.randint(100000, 999999))
 
@@ -116,9 +125,16 @@ def register_user(request):
 
         except Exception as e:
 
-            print("REGISTRATION ERROR:", e)
+            print("========== REGISTRATION ERROR ==========")
 
-            messages.error(request, f"Registration failed: {str(e)}")
+            print(str(e))
+
+            traceback.print_exc()
+
+            messages.error(
+                request,
+                f"Registration failed: {str(e)}"
+            )
 
             return redirect("register")
 
@@ -143,7 +159,9 @@ def login_user(request):
         if user:
 
             if not user.is_active:
+
                 messages.error(request, "Please verify your email first")
+
                 return redirect("login")
 
             login(request, user)
@@ -151,6 +169,7 @@ def login_user(request):
             profile = user.profile
 
             if profile.subscription_expiry and profile.subscription_expiry < timezone.now():
+
                 profile.is_subscribed = False
                 profile.save()
 
@@ -179,6 +198,7 @@ def logout_user(request):
 def verify_email(request):
 
     user_id = request.session.get("verify_user")
+
     saved_code = request.session.get("verify_code")
 
     if not user_id or not saved_code:
@@ -202,8 +222,8 @@ def verify_email(request):
             user.save()
 
             request.session.pop("verify_user", None)
-            request.session.pop("verify_code", None)
             request.session.pop("verify_email", None)
+            request.session.pop("verify_code", None)
 
             messages.success(
                 request,
@@ -212,7 +232,7 @@ def verify_email(request):
 
             return redirect("login")
 
-        messages.error(request, "Invalid code. Try again.")
+        messages.error(request, "Invalid verification code")
 
     return render(request, "auth/verify.html")
 
@@ -224,7 +244,10 @@ def resend_code(request):
     user_id = request.session.get("verify_user")
 
     if not user_id:
-        return redirect("login")
+
+        messages.error(request, "Session expired")
+
+        return redirect("register")
 
     user = User.objects.get(id=user_id)
 
@@ -240,7 +263,10 @@ def resend_code(request):
         fail_silently=False
     )
 
-    messages.success(request, "New verification code sent to your email")
+    messages.success(
+        request,
+        "New verification code sent successfully"
+    )
 
     return redirect("verify")
 
@@ -261,7 +287,9 @@ def subjects(request):
     return render(
         request,
         "exams/subjects.html",
-        {"subjects": subjects}
+        {
+            "subjects": subjects
+        }
     )
 
 
@@ -271,12 +299,13 @@ def past_questions(request, subject_id):
 
     subject = get_object_or_404(Subject, id=subject_id)
 
-    all_questions = Question.objects.filter(subject=subject).order_by('id')
+    all_questions = Question.objects.filter(subject=subject).order_by("id")
 
-    page_number = request.GET.get('page', 1)
+    page_number = request.GET.get("page", 1)
 
     try:
         page_number = int(page_number)
+
     except:
         page_number = 1
 
@@ -292,13 +321,13 @@ def past_questions(request, subject_id):
     total_pages = (total_questions + per_page - 1) // per_page
 
     context = {
-        'subject': subject,
-        'questions': questions,
-        'current_page': page_number,
-        'total_pages': total_pages,
-        'has_next': page_number < total_pages,
-        'has_previous': page_number > 1,
-        'total_questions': total_questions,
+        "subject": subject,
+        "questions": questions,
+        "current_page": page_number,
+        "total_pages": total_pages,
+        "has_next": page_number < total_pages,
+        "has_previous": page_number > 1,
+        "total_questions": total_questions,
     }
 
     return render(
@@ -318,7 +347,9 @@ def mock_test(request):
     return render(
         request,
         "exams/mock_test.html",
-        {"subjects": subjects}
+        {
+            "subjects": subjects
+        }
     )
 
 
@@ -351,7 +382,7 @@ def start_mock(request):
 
             english_questions = Question.objects.filter(
                 subject=english
-            ).order_by('?')[:60]
+            ).order_by("?")[:60]
 
             subject_questions[english] = english_questions
 
@@ -369,7 +400,7 @@ def start_mock(request):
 
                 questions = Question.objects.filter(
                     subject=subject
-                ).order_by('?')[:40]
+                ).order_by("?")[:40]
 
                 subject_questions[subject] = questions
 
@@ -385,7 +416,7 @@ def start_mock(request):
             request,
             "exams/mock_exam.html",
             {
-                "subject_questions": subject_questions,
+                "subject_questions": subject_questions
             }
         )
 
@@ -455,7 +486,7 @@ def submit_mock(request):
     return redirect("home")
 
 
-# ================= PAYMENT =================
+# ================= PAYMENT PAGE =================
 
 @login_required
 def payment_page(request):

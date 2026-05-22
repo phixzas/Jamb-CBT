@@ -4,45 +4,93 @@
 
 <div style="max-width:420px; margin:60px auto; background:white; padding:30px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1);">
 
-    <h2 style="text-align:center; color:#006400;">Create Account</h2>
+    <h2 style="text-align:center; color:#006400; margin-bottom:20px;">
+        Create Account
+    </h2>
 
     {% if messages %}
         {% for message in messages %}
-            <p style="color:red; text-align:center; background:#ffebee; padding:10px; border-radius:6px;">{{ message }}</p>
+            <p style="color:red; text-align:center; background:#ffebee; padding:10px; border-radius:6px; margin-bottom:15px;">
+                {{ message }}
+            </p>
         {% endfor %}
     {% endif %}
 
     <form method="post">
+
         {% csrf_token %}
 
-        <input type="text" name="username" placeholder="Username" required 
+        <input type="text"
+               name="username"
+               placeholder="Username"
+               required
                style="width:100%; padding:14px; margin:10px 0; border:1px solid #ccc; border-radius:8px;">
 
-        <input type="text" name="full_name" placeholder="Full Name" required 
+        <input type="text"
+               name="full_name"
+               placeholder="Full Name"
+               required
                style="width:100%; padding:14px; margin:10px 0; border:1px solid #ccc; border-radius:8px;">
 
-        <input type="email" name="email" placeholder="Email" required 
+        <input type="email"
+               name="email"
+               placeholder="Email"
+               required
                style="width:100%; padding:14px; margin:10px 0; border:1px solid #ccc; border-radius:8px;">
 
-        <input type="password" name="password" placeholder="Password" required 
+        <input type="password"
+               name="password"
+               placeholder="Password"
+               required
                style="width:100%; padding:14px; margin:10px 0; border:1px solid #ccc; border-radius:8px;">
 
-        <input type="text" name="referrer" placeholder="Referrer Code (optional)" 
+        <input type="text"
+               name="referrer"
+               placeholder="Referrer Code (optional)"
                style="width:100%; padding:14px; margin:10px 0; border:1px solid #ccc; border-radius:8px;">
 
-        <button type="submit" style="width:100%; padding:14px; background:#006400; color:white; border:none; border-radius:8px; font-size:1.1rem; margin-top:15px;">
+        <button type="submit"
+                style="width:100%; padding:14px; background:#006400; color:white; border:none; border-radius:8px; font-size:1.1rem; margin-top:15px; cursor:pointer;">
+
             Register
+
         </button>
 
     </form>
 
+    <!-- LOGIN LINK -->
+
+    <p style="text-align:center; margin-top:20px; font-size:15px;">
+
+        Already have an account?
+
+        <a href="/exams/login/"
+           style="color:#006400; font-weight:bold; text-decoration:none;">
+
+            Login here
+
+        </a>
+
+    </p>
+
 </div>
 
-<!-- SIMPLE TEST BOX - SHOULD BE VISIBLE -->
-<div style="max-width: 420px; margin: 30px auto; padding: 25px; background: #ffffcc; border: 3px solid #ffcc00; text-align:center; border-radius: 10px;">
-    <h4 style="color:#cc9900;">🟡 THIS IS A TEST BOX</h4>
-    <p>If you can see this yellow box, the ad placement is working.</p>
-    <p>Real ads will appear here later.</p>
+<!-- SIMPLE TEST BOX -->
+
+<div style="max-width:420px; margin:30px auto; padding:25px; background:#ffffcc; border:3px solid #ffcc00; text-align:center; border-radius:10px;">
+
+    <h4 style="color:#cc9900;">
+        🟡 THIS IS A TEST BOX
+    </h4>
+
+    <p>
+        If you can see this yellow box, the ad placement is working.
+    </p>
+
+    <p>
+        Real ads will appear here later.
+    </p>
+
 </div>
 
 {% endblock %}
