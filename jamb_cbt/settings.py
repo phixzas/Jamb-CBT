@@ -106,12 +106,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ====================== EMAIL & PAYSTACK ======================
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "phixzas60@gmail.com"
-EMAIL_HOST_PASSWORD = "pjbb gfmq jkei uwat"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 PAYSTACK_SECRET_KEY = "sk_test_86500f868558db97037ae0d4dfaa3036a01dcf71"
 PAYSTACK_PUBLIC_KEY = "pk_test_2dd7563c27640843bf759bb0e82497b19ee7e2ed"
