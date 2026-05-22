@@ -10,9 +10,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ====================== SECRET KEY ======================
 SECRET_KEY = os.getenv("SECRET_KEY")
-import os
-
-SECRET_KEY = os.environ.get("SECRET_KEY")
 
 if not SECRET_KEY:
     raise Exception("SECRET_KEY is missing")
