@@ -34,8 +34,6 @@ def subscription_required(view_func):
 
 # ================= AUTH =================
 
-
-
 def register_user(request):
 
     if request.method == "POST":
@@ -66,7 +64,6 @@ def register_user(request):
             user.is_active = False
             user.save()
 
-            # create profile safely (IMPORTANT FIX)
             profile, created = Profile.objects.get_or_create(user=user)
             profile.full_name = full_name
             profile.email = email
@@ -75,7 +72,6 @@ def register_user(request):
 
             code = str(random.randint(100000, 999999))
 
-            # store email + code safely
             request.session["verify_user"] = user.id
             request.session["verify_email"] = email
             request.session["verify_code"] = code
@@ -92,11 +88,12 @@ def register_user(request):
             return redirect("verify")
 
         except Exception as e:
-         print("REGISTRATION ERROR:", e)
-         messages.error(request, str(e))
-        return redirect("register")
+            print("REGISTRATION ERROR:", e)
+            messages.error(request, str(e))
+            return redirect("register")
 
     return render(request, "auth/register.html")
+
 
 def login_user(request):
     if request.method == "POST":
@@ -114,12 +111,11 @@ def login_user(request):
 
             login(request, user)
 
-# ================= STEP 9D: SUBSCRIPTION CHECK =================
             profile = user.profile
 
             if profile.subscription_expiry and profile.subscription_expiry < timezone.now():
-             profile.is_subscribed = False
-             profile.save()
+                profile.is_subscribed = False
+                profile.save()
 
             messages.success(request, f"Welcome {user.username}")
             return redirect("home")
@@ -160,7 +156,6 @@ def verify_email(request):
             user.is_active = True
             user.save()
 
-            # clear session after success
             request.session.pop("verify_user", None)
             request.session.pop("verify_code", None)
             request.session.pop("verify_email", None)
@@ -208,14 +203,37 @@ def subjects(request):
     return render(request, "exams/subjects.html", {"subjects": subjects})
 
 
+# ================= UPDATED PAST QUESTIONS WITH PAGINATION =================
 def past_questions(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
-    questions = Question.objects.filter(subject=subject)
+    all_questions = Question.objects.filter(subject=subject).order_by('id')
+    
+    # Pagination: 15 questions per page
+    page_number = request.GET.get('page', 1)
+    try:
+        page_number = int(page_number)
+    except:
+        page_number = 1
+        
+    per_page = 15
+    start = (page_number - 1) * per_page
+    end = start + per_page
+    
+    questions = all_questions[start:end]
+    total_questions = all_questions.count()
+    total_pages = (total_questions + per_page - 1) // per_page
 
-    return render(request, "exams/past_questions.html", {
-        "subject": subject,
-        "questions": questions
-    })
+    context = {
+        'subject': subject,
+        'questions': questions,
+        'current_page': page_number,
+        'total_pages': total_pages,
+        'has_next': page_number < total_pages,
+        'has_previous': page_number > 1,
+        'total_questions': total_questions,
+    }
+    
+    return render(request, "exams/past_questions.html", context)
 
 
 # ================= PROTECTED =================
@@ -223,10 +241,7 @@ def past_questions(request, subject_id):
 @subscription_required
 def mock_test(request):
     subjects = Subject.objects.exclude(name__icontains="english")
-
-    return render(request, "exams/mock_test.html", {
-        "subjects": subjects
-    })
+    return render(request, "exams/mock_test.html", {"subjects": subjects})
 
 
 @subscription_required
@@ -325,6 +340,8 @@ def submit_mock(request):
         })
 
     return redirect("home")
+
+
 from django.utils import timezone
 
 def subscription_required(view_func):
@@ -340,11 +357,9 @@ def subscription_required(view_func):
             messages.error(request, "Please subscribe to continue")
             return redirect("payment_page")
 
-        # 🧠 AUTO CHECK EXPIRY
         if profile.subscription_expiry and profile.subscription_expiry < timezone.now():
             profile.is_subscribed = False
             profile.save()
-
             messages.error(request, "Your subscription has expired")
             return redirect("payment_page")
 
@@ -360,7 +375,6 @@ def payment_page(request):
 
     plan = request.GET.get("plan")
 
-    # If user hasn't selected plan yet → show page
     if not plan:
         return render(request, "exams/payment.html")
 
@@ -394,10 +408,12 @@ def payment_page(request):
 
     messages.error(request, "Payment initialization failed")
     return redirect("home")
+
+
 @login_required
 def paystack_verify(request):
 
-    reference = request.GET.get("reference")  # ✅ FIXED HERE
+    reference = request.GET.get("reference")
 
     if not reference:
         messages.error(request, "Missing payment reference")
@@ -419,9 +435,6 @@ def paystack_verify(request):
 
         profile.is_subscribed = True
         profile.subscription_type = plan
-
-        from django.utils import timezone
-        from datetime import timedelta
 
         if plan == "monthly":
             profile.subscription_expiry = timezone.now() + timedelta(days=30)

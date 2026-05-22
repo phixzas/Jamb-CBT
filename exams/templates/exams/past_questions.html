@@ -1,36 +1,72 @@
 {% extends "exams/base.html" %}
+
 {% block content %}
-<!DOCTYPE html>
-<html>
-<head>
-<title>{{ subject.name }} Past Questions</title>
-</head>
 
-<body>
-
-<h1>{{ subject.name }} Past Questions</h1>
+<h1 style="color:#006400; margin-bottom:20px;">{{ subject.name }} - Past Questions</h1>
+<p style="margin-bottom:25px; color:#555;">
+    Page {{ current_page }} of {{ total_pages }} | Total Questions: {{ total_questions }}
+</p>
 
 {% for question in questions %}
-
-<div style="margin-bottom:20px; border-bottom:1px solid #ccc; padding:10px">
-
-<p><strong>{{ forloop.counter }}. {{ question.question_text }}</strong></p>
-
-<p>A. {{ question.option_a }}</p>
-<p>B. {{ question.option_b }}</p>
-<p>C. {{ question.option_c }}</p>
-<p>D. {{ question.option_d }}</p>
-
+<div style="margin-bottom:25px; background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    <p style="font-weight:bold; margin-bottom:15px;">
+        <strong>Question {{ forloop.counter }}.</strong> {{ question.question_text }}
+    </p>
+    
+    <div style="margin-left:15px;">
+        <label style="display:block; margin:10px 0;">
+            <input type="radio" name="{{ question.id }}" value="A"> A. {{ question.option_a }}
+        </label>
+        <label style="display:block; margin:10px 0;">
+            <input type="radio" name="{{ question.id }}" value="B"> B. {{ question.option_b }}
+        </label>
+        <label style="display:block; margin:10px 0;">
+            <input type="radio" name="{{ question.id }}" value="C"> C. {{ question.option_c }}
+        </label>
+        <label style="display:block; margin:10px 0;">
+            <input type="radio" name="{{ question.id }}" value="D"> D. {{ question.option_d }}
+        </label>
+    </div>
 </div>
-
 {% endfor %}
 
-<br>
+<!-- Navigation Buttons -->
+<div style="text-align:center; margin:40px 0; display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+    
+    {% if has_previous %}
+        <a href="?page={{ current_page|add:"-1" }}" 
+           onclick="showInterstitialAd(); return true;"
+           style="padding:12px 30px; background:#006400; color:white; text-decoration:none; border-radius:8px; font-size:16px;">
+            ← Previous
+        </a>
+    {% endif %}
 
-<a href="/exams/subjects/">
-<button>Back to Subjects</button>
+    <span style="padding:12px 20px; background:#f8f9fa; border-radius:8px; font-weight:500;">
+        Page {{ current_page }} / {{ total_pages }}
+    </span>
+
+    {% if has_next %}
+        <a href="?page={{ current_page|add:"1" }}" 
+           onclick="showInterstitialAd(); return true;"
+           style="padding:12px 30px; background:#006400; color:white; text-decoration:none; border-radius:8px; font-size:16px;">
+            Next →
+        </a>
+    {% endif %}
+</div>
+
+<br><br>
+<a href="{% url 'subjects' %}" style="color:#006400; font-weight:500;">
+    ← Back to Subjects
 </a>
 
-</body>
-</html>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// INTERSTITIAL AD FUNCTION
+function showInterstitialAd() {
+    alert("🟦 FULL SCREEN INTERSTITIAL AD WOULD SHOW HERE\n\nPage " + {{ current_page }});
+    console.log("Ad triggered on page:", {{ current_page }});
+}
+</script>
 {% endblock %}
